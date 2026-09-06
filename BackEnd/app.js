@@ -1,25 +1,32 @@
 require("dotenv").config();
-const cors = require("cors");
-
+const morgan = require("morgan");
 const express = require("express");
 const app = express();
-
-app.use(cors({
-  origin: "http://localhost:5173"
-}));
-
+const cors = require("cors");
 const path = require("path");
 
-app.use("/Uploads", express.static(path.join(__dirname, "Uploads")));
+const connect = require("./Config/db")
 
 app.use(express.json());
+
+
+if(process.env.NODE_ENV === "production") {
+    app.use(morgan("combined"));
+} else {
+    app.use(morgan("dev"));
+}
+
+app.use(cors({
+    origin: "http://localhost:5173"
+}));
+
+connect();
+
+app.use("/Uploads", express.static(path.join(__dirname, "Uploads")));
 
 app.get('/test',(req,res)=>{
     res.json({msg:'test'})
 });
-
-const connect = require("./Config/db")
-connect();
 
 const adminRoutes = require("./Routes/usersRoutes");
 const glRoutes = require("./Routes/glRoutes");
@@ -30,6 +37,10 @@ const vendorRoutes = require("./Routes/vendorRoutes");
 const ap_invoicesRoutes = require("./Routes/ap_invoicesRoutes");
 const ap_invoiceslinesRoutes = require("./Routes/ap_invoice_linesRoutes");
 const Ap_paymentsRoutes = require("./Routes/ap_paymentsRoutes");
+const customerRoutes = require("./Routes/customerRoutes");
+const ar_invoicesRoutes = require("./Routes/ar_invoicesRoutes");
+const ar_receiptsRoutes = require("./Routes/ar_receiptsRoutes");
+
 
 app.use('/api/dashboard', adminRoutes)
 app.use('/api/gl', glRoutes);
@@ -40,9 +51,8 @@ app.use('/api/vendor', vendorRoutes);
 app.use('/api/ap_invoices', ap_invoicesRoutes);
 app.use('/api/ap_invoiceslines', ap_invoiceslinesRoutes);
 app.use('/api/ap_payment', Ap_paymentsRoutes);
+app.use('/api/customer', customerRoutes);
+app.use('/api/ar_invoices', ar_invoicesRoutes);
+app.use('/api/ar_receipts', ar_receiptsRoutes);
 
-const port = process.env.PORT || 3000;
-    
-app.listen(port,()=>{
-    console.log("Server Running");
-});
+module.exports = app;

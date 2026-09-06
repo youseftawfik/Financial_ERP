@@ -27,7 +27,7 @@ const addAp_invoiceslines = async (req, res) => {
 const getallAp_invoices = async (req, res) => {
    try {
 
-    const ap_invoices = await Ap_invoices_lines.find().populate('invoice_id');
+    const ap_invoices = await Ap_invoices_lines.find().populate('invoice_id').populate('account_id');
 
     res.status(200).json({msg:"All Accounts Payable Invoice Retrived", ap_invoices})
 
@@ -37,30 +37,45 @@ const getallAp_invoices = async (req, res) => {
 }
 
 const getAp_invoicesById = async (req, res) => {
-    try {
-
+  try {
     const { id } = req.params;
 
     if (!id) {
-      return res.status(400).json({ msg: "ID is required" });
+      return res.status(400).json({ msg: "Invoice ID is required" });
     }
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ msg: "Invalid ID" });
+      return res.status(400).json({ msg: "Invalid Invoice ID" });
     }
 
-    const data = await Ap_invoices_lines.findById(id).populate('invoice_id');
+    const invoice = await Ap_invoices.findById(id)
+      .populate("vendor_id")
+      .populate("period_id")
+      .populate("journal_id");
 
-    if (!data) {
+    if (!invoice) {
       return res.status(404).json({ msg: "Account Payable Invoice not found" });
     }
 
-    res.status(200).json(data);
+    const lines = await Ap_invoices_lines.find({ invoice_id: id })
+      .populate("account_id")
+      .populate("tax_rate_id");
+
+    res.status(200).json({
+      msg: "Invoice retrieved successfully",
+      data: {
+        ...invoice.toObject(),
+        lines
+      }
+    });
 
   } catch (error) {
-    res.status(500).json({ msg: "Server Error", error: error.message });
+    res.status(500).json({ 
+      msg: "Server Error", 
+      error: error.message 
+    });
   }
-}
+};
 
 const updateAp_invoicesline = async (req, res) => {
   try {

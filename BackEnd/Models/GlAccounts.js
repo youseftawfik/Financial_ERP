@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
+const Counter = require("./Counter")
 
 const glSchema = new mongoose.Schema({
+    Account_number: {
+        type: String,
+        unique: true
+    },
     name: {
         type: String,
         required: true,
@@ -16,16 +21,33 @@ const glSchema = new mongoose.Schema({
         required: true,
     },
     is_control: {
-        type: Boolean,
-        default: true
+        type: String,
+        enum: ["ACTIVE", "LOCKED"],
+        default: "ACTIVE"
     },
     normal_balance: {
         type: String,
-        enum: ["DEBIT" , "CREDIT"],
+        enum: ["DEBIT", "CREDIT"],
         required: true,
     }
-}, {timestamps: true});
+}, { timestamps: true });
 
-const GlAccount = mongoose.model("GlAccount", glSchema);
+glSchema.pre("save", async function () {
+    try {
+        if (!this.isNew) return;
 
-module.exports = GlAccount;
+        const counter = await Counter.findOneAndUpdate(
+            { name: "GlAccounts" },
+            { $inc: { value: 1 } },
+            { new: true, upsert: true }
+        );
+        this.Account_number = `ACC-${counter.value.toString().padStart(3, "0")}`;
+
+    } catch (err) {
+        throw err;
+    }
+});
+
+const GlAccounts = mongoose.model("GlAccount", glSchema);
+
+module.exports = GlAccounts;

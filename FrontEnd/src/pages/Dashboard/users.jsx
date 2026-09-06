@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 // import { UseAuth } from '../../components/context/authContext'
-// import { useNavigate } from 'react-router-dom'
-import { NavLink } from 'react-router-dom'
+// import { useNavigate } from 'react-router'
+import { NavLink } from 'react-router'
 import Style from "./users.module.css"
 import api from '../../components/api';
 import { Users,Plus,Filter,ChevronDown,Download,Pencil,RotateCcw,MoreVertical,ChevronLeft,ChevronRight,Lock,Mail,Zap} from "lucide-react";
@@ -38,7 +38,6 @@ export default function UserManagementDark() {
         setEmployees(res.data.user);
       } catch (err) {
         console.log(err);
-        // showToast('Failed to fetch employees');
       }
     };
     getEmployees();
@@ -52,10 +51,7 @@ export default function UserManagementDark() {
     (u) =>
       u.first_name.toLowerCase().includes(search.toLowerCase()) ||
       u.email.toLowerCase().includes(search.toLowerCase()) 
-      // u.dept.toLowerCase().includes(search.toLowerCase())
   );
-
-  
 
   return (
         <main className={Style.umcontent}>

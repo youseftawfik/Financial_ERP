@@ -94,4 +94,27 @@ const deleteaccount = async (req,res) => {
   }
 }
 
-module.exports = {addGlAccount, getallaccounts, updateAccount, deleteaccount};
+const updatestatus = async (req, res) => {
+    try {
+
+        const { id } = req.params;
+        const { is_control } = req.body;
+
+        if (!id) {
+            return res.status(400).json({ msg: "Account ID is required" });
+        }
+
+        const glAccount = await GlAccount.findByIdAndUpdate(id, { is_control }, { new: true });
+
+        if (!glAccount) {
+            return res.status(404).json({ msg: "Account not found" });
+        }
+
+        res.status(200).json({ msg: "Status Updated successfully", GlAccount: glAccount });
+
+    } catch (error) {
+        res.status(500).json({ msg: "Server Error", error: error.message })
+    }
+}
+
+module.exports = {addGlAccount, getallaccounts, updateAccount, deleteaccount, updatestatus};

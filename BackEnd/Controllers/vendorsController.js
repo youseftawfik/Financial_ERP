@@ -84,7 +84,7 @@ const updateVendor = async (req, res) => {
         const updatedItem = await Vendors.findByIdAndUpdate(id, updateData, { new: true });
 
         if (!updatedItem) {
-            return res.status(404).json({ msg: "Journal Header not found" });
+            return res.status(404).json({ msg: "Vendor not found" });
         }
 
         res.status(200).json({ msg: "Vendor updated successfully", updatedItem });

@@ -22,6 +22,8 @@ const S = {
   }),
 };
 
+const PAGE_SIZE = 8;
+
 export default function Vendor() {
   const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,6 +40,7 @@ export default function Vendor() {
   const [subscribeAlerts, setSubscribeAlerts] = useState(false);
 
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     const fetchVendors = async () => {
@@ -172,6 +175,10 @@ export default function Vendor() {
     (v?.name ?? "").toLowerCase().includes(search.toLowerCase())
   );
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pageSafe = Math.min(page, totalPages);
+  const pageItems = filtered.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE);
+
   return (
     <>
       <main className={Style.vmcontent}>
@@ -204,21 +211,21 @@ export default function Vendor() {
                   Vendor Name <span className={Style.vmrequired}>*</span>
                 </label>
                 <input id="vendorName" type="text" className={Style.vminput} className={Style.vminput} placeholder="e.g. Global Logistics Inc."
-                  value={vendorName} onChange={(e) => setVendorName(e.target.value)} required/>
+                  value={vendorName} onChange={(e) => setVendorName(e.target.value)} required />
               </div>
 
               <div className={Style.vmfield}>
                 <label htmlFor="taxId" className={Style.vmfieldlabel}>
                   Tax Identification Number (TIN) <span className={Style.vmrequired}>*</span>
                 </label>
-                <input id="taxId" type="text" className={Style.vminput} placeholder="XX-XXXXXXX" value={taxId} onChange={(e) => setTaxId(e.target.value)} required/>
+                <input id="taxId" type="text" className={Style.vminput} placeholder="XX-XXXXXXX" value={taxId} onChange={(e) => setTaxId(e.target.value)} required />
               </div>
 
               <div className={Style.vmfield}>
                 <label htmlFor="credit" className={Style.vmfieldlabel}>
                   Credit Limit
                 </label>
-                <input id="credit" type="number" className={Style.vminput} placeholder="50000" value={credit} onChange={(e) => setCredit(e.target.value)}/>
+                <input id="credit" type="number" className={Style.vminput} placeholder="50000" value={credit} onChange={(e) => setCredit(e.target.value)} />
               </div>
 
               <div className={Style.vmrow2}>
@@ -226,32 +233,32 @@ export default function Vendor() {
                   <label htmlFor="paymentTerms" className={Style.vmfieldlabel}>
                     Payment Terms
                   </label>
-                      <div className={Style.vmselectwrap}>
-                        <select className={Style.vmselect} value={paymentTerms} onChange={(e) => setPaymentTerms(e.target.value)}>
-                          <option value="">Select Payment Term</option>
-                          <option value="NET30">NET30</option>
-                          <option value="NET60">NET60</option>
-                          <option value="IMMEDIATE">IMMEDIATE</option>
-                        </select>
-                        <ChevronDown size={14} className={Style.vmselectcaret} />
-                      </div>
-                    </div>
-                    <div className={Style.vmfield}>
-                      <label className={Style.vmfieldlabel}>Initial Status</label>
-                      <div className={Style.vmselectwrap}>
-                        <select className={Style.vmselect} value={initialStatus} onChange={(e) => setInitialStatus(e.target.value)}>
-                          <option value="">Select Status</option>
-                          <option value="ACTIVE">ACTIVE</option>
-                          <option value="INACTIVE">INACTIVE</option>
-                          <option value="BLOCKED">BLOCKED</option>
-                       </select>
-                        <ChevronDown size={14} className={Style.vmselectcaret} />
+                  <div className={Style.vmselectwrap}>
+                    <select className={Style.vmselect} value={paymentTerms} onChange={(e) => setPaymentTerms(e.target.value)}>
+                      <option value="">Select Payment Term</option>
+                      <option value="NET30">NET30</option>
+                      <option value="NET60">NET60</option>
+                      <option value="IMMEDIATE">IMMEDIATE</option>
+                    </select>
+                    <ChevronDown size={14} className={Style.vmselectcaret} />
+                  </div>
+                </div>
+                <div className={Style.vmfield}>
+                  <label className={Style.vmfieldlabel}>Initial Status</label>
+                  <div className={Style.vmselectwrap}>
+                    <select className={Style.vmselect} value={initialStatus} onChange={(e) => setInitialStatus(e.target.value)}>
+                      <option value="">Select Status</option>
+                      <option value="ACTIVE">ACTIVE</option>
+                      <option value="INACTIVE">INACTIVE</option>
+                      <option value="BLOCKED">BLOCKED</option>
+                    </select>
+                    <ChevronDown size={14} className={Style.vmselectcaret} />
                   </div>
                 </div>
               </div>
 
               <div className={Style.vmcheckrow}>
-                <input type="checkbox" id="subscribeAlerts" className={Style.vmcheckbox} checked={subscribeAlerts} onChange={(e) => setSubscribeAlerts(e.target.checked)}/>
+                <input type="checkbox" id="subscribeAlerts" className={Style.vmcheckbox} checked={subscribeAlerts} onChange={(e) => setSubscribeAlerts(e.target.checked)} />
                 <label htmlFor="subscribeAlerts" className={Style.vmchecklabel}>
                   Subscribe to automated tax compliance alerts
                 </label>
@@ -302,10 +309,10 @@ export default function Vendor() {
               <tbody>
                 {loading ? (
                   <tr className={Style.vmemptyrow}><td colSpan={5}>Loading vendor directory…</td></tr>
-                ) : filtered.length === 0 ? (
+                ) : pageItems.length === 0 ? (
                   <tr className={Style.vmemptyrow}><td colSpan={5}>No vendors match your filter.</td></tr>
                 ) : (
-                  filtered.map((v) => (
+                  pageItems.map((v) => (
                     <tr key={v.id} className={Style.vmrow}>
                       <td className={`${Style.vmtd} ${Style.vmtdid}`}>#{v.Vendor_number}</td>
                       <td className={Style.vmtd}>
@@ -359,6 +366,18 @@ export default function Vendor() {
                 )}
               </tbody>
             </table>
+            <div className={Style.rcfooterrow}>
+              <div className={Style.rcshowingtext}>
+                Showing {pageItems.length} of {filtered.length} receipts
+              </div>
+              <div className={Style.rcpagination}>
+                <button className={Style.rcpagebtn} disabled={pageSafe === 1} onClick={() => setPage(pageSafe - 1)}>‹</button>
+                {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((p) => (
+                  <button key={p} className={`${Style.rcpagebtn} ${p === pageSafe ? Style.rcpageactive : ""}`} onClick={() => setPage(p)}>{p}</button>
+                ))}
+                <button className={Style.rcpagebtn} disabled={pageSafe === totalPages} onClick={() => setPage(pageSafe + 1)}>›</button>
+              </div>
+            </div>
           </div>
         </div>
       </main>
